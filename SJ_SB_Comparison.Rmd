@@ -1,0 +1,74 @@
+---
+title: "CA exploration"
+output: pdf_document
+date: "2023-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE, autodep=TRUE, 
+                      cache.comments=FALSE, message=FALSE, warning=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+san_francisco <- readRDS("California/san_francisco.rds")
+san_diego     <- readRDS("California/san_diego.rds")
+san_bernadino <- readRDS("California/san_bernadino.rds")
+santa_ana     <- readRDS("California/santa_ana.rds")
+la            <- readRDS("California/la.rds")
+anaheim       <- readRDS("California/anaheim.rds")
+oakland       <- readRDS("California/oakland.rds")
+long_beach    <- readRDS("California/long_beach.rds")
+stockton      <- readRDS("California/stockton.rds")
+san_jose      <- read_csv("California/san_jose.csv")
+
+bound_df <- bind_rows(san_francisco, san_diego, san_bernadino, santa_ana, la, 
+                      anaheim, oakland, long_beach, san_jose, stockton, 
+                      .id = "id") %>% 
+  mutate(
+    id = case_when(
+      id == 1 ~ "San Francisco",
+      id == 2 ~ "San Diego",
+      id == 3 ~ "San Bernardino",
+      id == 4 ~ "Santa Ana",
+      id == 5 ~ "Los Angeles",
+      id == 6 ~ "Anaheim",
+      id == 7 ~ "Oakland",
+      id == 8 ~ "Long Beach",
+      id == 9 ~ "San Jose",
+      id == 10 ~ "Stockton"),
+    id = as.factor(id)
+    )
+```
+
+```{r}
+norm_df <- bound_df %>% 
+  mutate(m_y = format(date, '%Y-%m-01')) %>% 
+  filter(id != "Los Angeles") %>%
+  group_by(id, m_y) %>% 
+  summarize(n_by_month = n()) %>% 
+  ungroup() %>% 
+  group_by(id) %>% 
+  summarize(avg = mean(n_by_month),
+            norm_by_month = n_by_month / avg,
+            m_y,
+            n_by_month) 
+
+sj_sb_plot <- norm_df %>% 
+  mutate(City = id) %>% 
+  ggplot(aes(x = as.Date(m_y), y = norm_by_month, color = City)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(size = 0.5) + 
+  # scale_y_log10() +
+  ggtitle("San Jose and San Bernardino Closest to Parallel Trends, \nbut in Completely Separate Parts of California") +
+  # geom_vline(xintercept = 0, linetype = "dashed", color = "black", size = 1) +
+  scale_color_manual(values = c("San Jose" = "red", "San Bernardino" = "blue")) +
+  ylab("Total Stops Normalized by City") +
+  xlab("Date") + 
+  geom_vline(xintercept = as.Date("2015-07-01"), linetype = "dotted", color = "red") + 
+  geom_vline(xintercept = as.Date("2017-09-01"), linetype = "dotted", color = "blue") 
+
+# ggsave("sj_sb.jpg", plot = sj_sb_plot, device = "jpeg", width = 6, height = 4, dpi = 300)
+```
