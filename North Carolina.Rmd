@@ -281,7 +281,9 @@ tau.hat = synthdid_estimate(setup_white$Y, setup_white$N0, setup_white$T0)
 se = sqrt(vcov(tau.hat, method='placebo'))
 sprintf('point estimate: %1.2f', tau.hat)
 sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
-plot(tau.hat, se.method='placebo')
+plot(tau.hat, se.method='placebo') +
+    labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Total Searches, White Subjects', 
+       subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
 ```{r}
@@ -545,17 +547,10 @@ nc_black_final %>%
              fill = "gray")
 ```
 
-
 ```{r}
 setup_black = panel.matrices(nc_black_final)
 tau.hat = synthdid_estimate(setup_black$Y, setup_black$N0, setup_black$T0)
 se = sqrt(vcov(tau.hat, method='placebo'))
-sprintf('point estimate: %1.2f', tau.hat)
-sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
-plot(tau.hat, se.method='placebo')
-```
-
-```{r}
 te_est <- sprintf('Point estimate for the treatment effect: %1.2f', tau.hat)
 CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
 
@@ -652,13 +647,19 @@ plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
 
 ```{r}
 nc_white_final_norm = nc_white_final %>%
-  mutate(total_searches = ifelse(county=="Greensboro", total_searches/115453*100,
-                                 ifelse(county == "Charlotte", total_searches/347219*100,
-                                        ifelse(county == "Durham", total_searches/115420*100,
-                                               ifelse(county == "Raleigh", total_searches/245575*100,
-                                                      ifelse(county == "Fayetteville", total_searches/72965*100,
-                                                             total_searches/112053*100))))))
+  mutate(total_searches = ifelse(county=="Greensboro", total_searches/115453*1000,
+                                 ifelse(county == "Charlotte", total_searches/347219*1000,
+                                        ifelse(county == "Durham", total_searches/115420*1000,
+                                               ifelse(county == "Raleigh", total_searches/245575*1000,
+                                                      ifelse(county == "Fayetteville", total_searches/72965*1000,
+                                                             total_searches/112053*1000))))))
+
+nc_black_final_norm = data.frame(county = nc_white_final_norm$county,
+                                 year_month = nc_white_final_norm$year_month,
+                                 total_searches = nc_white_final_norm$total_searches,
+                                 treated = nc_white_final_norm$treated)
 ```
+
 
 ### 2002
 
@@ -679,11 +680,12 @@ nc_white_final_norm %>%
                   color = "black", size=0.75) +
     annotate("rect",
              xmin=as.Date('2013-03-01'), 
-             xmax=as.Date('2014-04-01'), 
+             xmax=as.Date('2014-03-01'), 
              ymin=-Inf, ymax=Inf,
              alpha = 0.7,
              fill = "gray")
 ```
+
 
 ```{r}
 setup_white_norm = panel.matrices(nc_white_final_norm)
@@ -696,7 +698,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method='placebo', spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, White Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, White Subjects', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -718,7 +720,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method='placebo', spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, White Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, White Subjects (2009)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -736,7 +738,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method='placebo', spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, White Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, White Subjects (2011)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -755,32 +757,25 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method='placebo', spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, White Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, White Subjects (No Fayetteville)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
+
 
 
 ## Black
 
 ```{r}
 nc_black_final_norm = nc_black_final %>%
-  mutate(total_searches = ifelse(county=="Greensboro", total_searches/128913*100,
-                                 ifelse(county == "Charlotte", total_searches/307862*100,
-                                        ifelse(county == "Durham", total_searches/102375*100,
-                                               ifelse(county == "Raleigh", total_searches/131441*100,
-                                                      ifelse(county == "Fayetteville", total_searches/88391*100,
-                                                             total_searches/82855*100))))))
+  mutate(total_searches = ifelse(county=="Greensboro", total_searches/128913*1000,
+                                 ifelse(county == "Charlotte", total_searches/307862*1000,
+                                        ifelse(county == "Durham", total_searches/102375*1000,
+                                               ifelse(county == "Raleigh", total_searches/131441*1000,
+                                                      ifelse(county == "Fayetteville", total_searches/88391*1000,
+                                                             total_searches/82855*1000))))))
 ```
 
 ### 2002
-
-```{r}
-nc_black_final_norm %>%
-  filter(county == "Fayetteville") %>%
-  ggplot(aes(x = as.Date(ym(year_month)), y = total_searches)) +
-    geom_line()
-```
-
 
 ```{r}
 nc_black_final_norm %>%
@@ -800,7 +795,7 @@ nc_black_final_norm %>%
                   color = "black", size=0.75) +
     annotate("rect",
              xmin=as.Date('2013-03-01'), 
-             xmax=as.Date('2014-04-01'), 
+             xmax=as.Date('2014-03-01'), 
              ymin=-Inf, ymax=Inf,
              alpha = 0.7,
              fill = "gray")
@@ -818,7 +813,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method="placebo", spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, Black Subjects', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -842,7 +837,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method="placebo", spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects (No Durham)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -862,7 +857,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method="placebo", spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects (No Fayetteville)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -882,7 +877,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method="placebo", spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, Black Subjects (2009)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -902,7 +897,7 @@ CI <- sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se
 plot(tau.hat, spaghetti.units=rownames(synthdid_controls(tau.hat)),
      se.method="placebo", spaghetti.line.alpha =.3,
      spaghetti.label.alpha = .3)  + 
-  labs(x = 'Period', y = 'Searches', title = 'Estimation Results; Normalized Searches, Black Subjects', 
+  labs(x = 'Period', y = 'Searches', title = 'Estimation Results: Normalized Searches, Black Subjects (2011)', 
        subtitle = paste0(te_est, ', ', CI, '.'))
 ```
 
@@ -919,8 +914,8 @@ nc_white_final_norm %>%
   ggplot(aes(x = as.Date(ym(year_month)), y = total_searches)) +
     geom_line(aes(col=county)) + 
     xlab("") +
-    labs(title = "% Searches in Greensboro, NC and Winston-Salem, NC for White Subjects",
-         y = "% of Searches/[Subject Race] Population") +
+    labs(title = "Norm. Searches in Greensboro & Winston-Salem for White Subjects",
+         y = "[Searches/[Subject Race] Population]*1000") +
     scale_x_date(date_labels = "%m-%Y") +
     scale_color_manual(values=c("#6A7FDB", "#45CB85")) +
     theme_bw() +
@@ -961,8 +956,8 @@ nc_black_final_norm %>%
   ggplot(aes(x = as.Date(ym(year_month)), y = total_searches)) +
     geom_line(aes(col=county)) + 
     xlab("") +
-    labs(title = "% Searches in Greensboro, NC and Winston-Salem, NC for Black Subjects",
-         y = "% of Searches/[Subject Race] Population") +
+    labs(title = "Norm. Searches in Greensboro & Winston-Salem for Black Subjects",
+         y = "[Searches/[Subject Race] Population]*1000")  +
     scale_x_date(date_labels = "%m-%Y") +
     scale_color_manual(values=c("#6A7FDB", "#45CB85")) +
     theme_bw() +
@@ -1007,7 +1002,7 @@ nc_white_final %>%
     geom_line(aes(col=county)) + 
     xlab("") +
     labs(title = "Searches in Greensboro, NC and Winston-Salem, NC for White Subjects",
-         y = "# Searches/[Subject Race] Population") +
+         y = "# Searches") +
     scale_x_date(date_labels = "%m-%Y") +
     scale_color_manual(values=c("#6A7FDB", "#45CB85")) +
     theme_bw() +
@@ -1024,6 +1019,7 @@ nc_white_final %>%
              fill = "gray")
 ```
 
+### 18 mo
 
 ```{r}
 nc_white_final %>% 
@@ -1039,6 +1035,23 @@ nc_white_final %>%
   summary
 ```
 
+### 27 mo
+
+```{r}
+nc_white_final %>% 
+  filter(year_month >= '2010-12') %>%
+  filter((year_month < '2013-03') |
+         (year_month >= '2014-03-01')) %>%
+  filter((county == "Greensboro") |
+         (county == "Winston-Salem")) %>%
+  mutate(time = ifelse(year_month > '2013-03', 1, 0),
+         treated = ifelse(county == "Greensboro", 1, 0)) %>%
+  lm(total_searches ~ treated*time,
+     data = .) %>%
+  summary
+```
+
+
 ## Black
 
 ```{r}
@@ -1049,8 +1062,8 @@ nc_black_final %>%
   ggplot(aes(x = as.Date(ym(year_month)), y = total_searches)) +
     geom_line(aes(col=county)) + 
     xlab("") +
-    labs(title = "Searches in Greensboro, NC and Winston-Salem, NC for White Subjects",
-         y = "# Searches/[Subject Race] Population") +
+    labs(title = "Searches in Greensboro, NC and Winston-Salem, NC for Black Subjects",
+         y = "# Searches") +
     scale_x_date(date_labels = "%m-%Y") +
     scale_color_manual(values=c("#6A7FDB", "#45CB85")) +
     theme_bw() +
@@ -1067,10 +1080,27 @@ nc_black_final %>%
              fill = "gray")
 ```
 
+### 18 mo
 
 ```{r}
 nc_black_final %>% 
   filter(year_month >= '2011-09') %>%
+  filter((year_month < '2013-03') |
+         (year_month >= '2014-03-01')) %>%
+  filter((county == "Greensboro") |
+         (county == "Winston-Salem")) %>%
+  mutate(time = ifelse(year_month > '2013-03', 1, 0),
+         treated = ifelse(county == "Greensboro", 1, 0)) %>%
+  lm(total_searches ~ treated*time,
+     data = .) %>%
+  summary
+```
+
+### 27 mo
+
+```{r}
+nc_black_final %>% 
+  filter(year_month >= '2010-12') %>%
   filter((year_month < '2013-03') |
          (year_month >= '2014-03-01')) %>%
   filter((county == "Greensboro") |
